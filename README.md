@@ -8,6 +8,7 @@
 * Benefits to business
 * Kubernetes Objects
 * Labels and Selectors
+* Deployment and Services
 
 ### What is Kubernetes (K8s)?
 
@@ -54,4 +55,60 @@ Kubernetes (often abbreviated to K8s) is an open-source container orchestration 
 **Labels** are key/value pairs attached to objects and can be used to organize and to select subsets of objects. 
 
 **Selectors** allow the user to filter keys based on the labels.
+
+### Deployment and Services
+We will be using: 
+```
+kubectl create -f file.yml
+```
+For both our deployments and services. We can view the status of each with
+```
+kubectl get deploy
+```
+or
+```
+kubectl get svc
+```
+Example of deploy file:
+```
+  name: nginx-deployment
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: harrypaterson/tech241-nginx:v1
+          ports:
+          - containerPort: 80
+```
+Example of service file:
+```
+---
+# Select the type of API version and type of service/object
+apiVersion: v1
+kind: Service
+# Metadata for name
+metadata:
+  name: nginx-svc
+  namespace: default # sre
+# Specification to include ports Selector to connect to the deployment
+spec:
+  ports:
+  - nodePort: 30001
+    port: 80
+    targetPort: 80
+    # range is 30000-32768
+    # Let's define the selector and label to connect to nginx deployment
+  selector:
+    app: nginx # This label connects this service to deployment
+    #Creating the NodePort type of deployment
+  type: NodePort
+```
 # tech241_kubernetes
