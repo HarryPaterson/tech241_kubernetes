@@ -111,4 +111,11 @@ spec:
     #Creating the NodePort type of deployment
   type: NodePort
 ```
+
+### Connect App to Database
+Run mongo-deploy.yml -> Run mongo-service.yml -> Run node-deploy.yml -> Run node-service.yml
+These can be found in repository, database before app so it doesnt topple
+Note: DB_HOST environmental variable is added to node deploy and uses mongo-service instead of an ip
+Note: The app requires an older version of mongodb to run, the latest version 6 is incompatible, we have used 4.4
+
 # tech241_kubernetes
