@@ -120,7 +120,6 @@ Note: The app requires an older version of mongodb to run, the latest version 6 
 
 ### PVC
 ![](https://i.imgur.com/UdDaEKr.png)
-Persistent Volume Claim (PVC)
 
 A Persistent Volume Claim (PVC) is a request for storage by a user. It is similar to a Pod in Kubernetes, as Pods consume node resources and PVCs consume PV resources.
 
