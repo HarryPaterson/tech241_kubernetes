@@ -118,4 +118,55 @@ These can be found in repository, database before app so it doesnt topple
 Note: DB_HOST environmental variable is added to node deploy and uses mongo-service instead of an ip
 Note: The app requires an older version of mongodb to run, the latest version 6 is incompatible, we have used 4.4
 
+### PVC
+![](https://i.imgur.com/UdDaEKr.png)
+Persistent Volume Claim (PVC)
+
+A Persistent Volume Claim (PVC) is a request for storage by a user. It is similar to a Pod in Kubernetes, as Pods consume node resources and PVCs consume PV resources.
+
+* PVCs can request specific size and access modes (e.g., they can be mounted as read-write or read-only).
+* A PVC is used by a Pod in its volume spec.
+* Kubernetes connects a PVC to a suitable PV and makes the storage available to the Pod.
+* If a PV was dynamically provisioned for a new PVC, the lifecycle of the PV is tied to that PVC.
+* It allows Pods to use storage without being aware of the underlying storage infrastructure.
+
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 256Mi
+```
+
+### HPA
+The Horizontal Pod Autoscaler automatically scales the number of Pods in a replication controller, deployment, replica set, or stateful set based on observed CPU utilization or custom metrics support added in Kubernetes
+
+* It ensures that a specific deployment or replica set has the necessary number of Pods to handle the load.
+* It scales the number of Pods up or down based on CPU utilization or other select metrics.
+* It uses the Metrics Server to fetch metrics like CPU utilization.
+* It allows to set minReplicas and maxReplicas, which define the lower and upper limit for the number of Pods.
+
+```
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler # hpa
+
+metadata:
+  name: sparta-mongo-db-deploy
+  namespace: default
+
+spec:
+  maxReplicas: 9 # max number of pods
+  minReplicas: 3 # min number of pods
+  scaleTargetRef: # targets deployment
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mongo # node # nginx
+  targetCPUUtilizationPercentage: 50 # 50% of cpu use
+```
+
 # tech241_kubernetes
