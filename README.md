@@ -167,5 +167,206 @@ spec:
     name: mongo # node # nginx
   targetCPUUtilizationPercentage: 50 # 50% of cpu use
 ```
+### Multiple Objects in Single YAML
+```
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  finalizers:
+  - kubernetes.io/pv-protection
+  labels:
+    type: local
+  name: mongodb-pv 
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: /tmp/data
+    type: ""
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
 
+
+# PVC for mongodb
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+ 
+
+# Deploy mongodb
+---
+
+
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: mongodb-deployment
+spec:
+  selector:
+    matchLabels:
+      app: mongodb
+
+  replicas: 3
+
+  template:
+    metadata:
+      labels:
+        app: mongodb
+
+    spec:
+      containers:
+      - name: mongodb
+        image: harrypaterson/tech241-mongodb:v1
+        ports:
+        - containerPort: 27017
+
+
+# Mongodb service (SVC)
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+spec:
+  selector:
+    app: mongodb
+  ports:
+    - port: 27017
+      targetPort: 27017
+
+
+
+# Mongodb HPA autoscaling
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler #(hpa)
+
+metadata:
+  name: sparta-mongo-db-deploy
+  namespace: default
+  
+spec:
+  maxReplicas: 6 #(max nuber of instances/pods)
+  minReplicas: 3 #(min nuber of instances/pods)
+  scaleTargetRef: # Targets the node deployment
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mongodb
+  targetCPUUtilizationPercentage: 50  # 50% of CPU use
+
+
+# App PV
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  finalizers:
+  - kubernetes.io/pv-protection
+  labels:
+    type: local
+  name: app-pv 
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: /tmp/data
+    type: ""
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+
+
+# App PVC
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: app-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+
+# App Deploy
+---
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: app-deployment
+spec:
+  selector:
+    matchLabels:
+      app: app
+
+  replicas: 3
+
+  template:
+    metadata:
+      labels:
+        app: app
+
+    spec:
+      containers:
+      - name: app
+        image: harrypaterson/tech241-app:v1
+        ports:
+        - containerPort: 3000
+
+# App
+---
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: app-svc
+  namespace: default
+
+spec:
+  ports:
+  - nodePort: 30002
+    port: 3000
+    targetPort: 3000
+
+  selector:
+    app: app
+
+  type: NodePort
+
+
+# HPA
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler #(hpa)
+
+metadata:
+  name: sparta-app-deploy
+  namespace: default
+  
+spec:
+  maxReplicas: 6 #(max nuber of instances/pods)
+  minReplicas: 3 #(min nuber of instances/pods)
+  scaleTargetRef: # Targets the node deployment
+    apiVersion: apps/v1
+    kind: Deployment
+    name: app
+  targetCPUUtilizationPercentage: 50  # 50% of CPU use
+```
 # tech241_kubernetes
